@@ -7,14 +7,22 @@ describe("Factory", function () {
 
     async function deployFactoryFixtures() {
         // Fetch accounts
-        const [deployer] = await ethers.getSigners()
+        const [deployer, creator] = await ethers.getSigners()
 
         // Fetch the contract
         const Factory = await ethers.getContractFactory("Factory")
         // Deploy the contract
         const factory = await Factory.deploy(FEE)
 
-        return { factory, deployer }
+        // Create token
+        const transaction = await factory.connect(creator).create("Koby", "KOBY", {value: FEE})
+        await transaction.wait()
+
+        // Get token address
+        const tokenAddress = await factory.tokens(0)
+        const token = await ethers.getContractAt("Token", tokenAddress)
+
+        return { factory, token, deployer, creator }
     }
 
     describe("Deployment", function() {
@@ -29,21 +37,12 @@ describe("Factory", function () {
         })
     })
 
-    
+    describe("Creating tokens", function() {
+        it("Shoud set the owner", async function(){
+            const { factory, token } = await loadFixture(deployFactoryFixtures)
+            expect(await token.owner()).to.equal(await factory.getAddress())
+        })
+    })
 
-//     it("should have a name", async function() {
-//         const { factory } = await deployFactoryFixtures()
-//         // Check name
-//         const name = await factory.name()
-//         // Check name is correct
-//         expect(name).to.equal("Factory")
-//     })
 
-//     it("should have a name2", async function() {
-//         const { factory } = await deployFactoryFixtures()
-//         // Check name
-//         const name2 = await factory.name2()
-//         // Check name is correct
-//         expect(name2).to.equal("Factory2")
-//     })
 })
