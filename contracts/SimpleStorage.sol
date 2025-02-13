@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19; // stating our version - compiler versions
+pragma solidity ^0.8.24; // stating our version - compiler versions
 
 contract SimpleStorage {
 
@@ -19,8 +19,8 @@ contract SimpleStorage {
     // Mapping (Better than an array since we can map content with a 'key' to easily find - Think a dictionary)
     mapping (string => uint256) public nameToFavNumber;
 
-    // Storage function
-    function storeFavNum(uint256 _favNum) public {
+    // Storage function ('virtual' is for an overriding function in AddFiveStorage)
+    function storeFavNum(uint256 _favNum) public virtual {
         myFavNum =  _favNum;
     }
 
