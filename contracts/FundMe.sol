@@ -5,7 +5,6 @@ pragma solidity ^0.8.24;
 // Import our PriceConverter library 
 import {PriceConverter} from './PriceConverter.sol';
 
-
 contract FundMe {
 
     // Lets us use the functions in PriceConverter.sol on all uint256 types
@@ -59,6 +58,16 @@ contract FundMe {
     modifier onlyOwner() {
         require (msg.sender == owner, "Must be owner to withdraw");
         _; // This means anything else in a function code will excecute at this point
+    }
+
+    // Route any transactions that send eth directly to the contract instead of calling the fund function to fund()
+    receive() external payable {
+        fund();
+    }
+
+    // Route any transactions that send eth directly to the contract instead of calling the fund function to fund()
+    fallback() external payable {
+        fund();
     }
 
 }
