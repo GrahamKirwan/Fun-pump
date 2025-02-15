@@ -9,7 +9,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 library PriceConverter {
 
     // Fetch the ETH price
-    function getPrice() public view returns(uint256) {
+    function getPrice() internal view returns(uint256) {
         // ABI is grabbed by passing chainlink pricefeed address for Shepholia ETH(0x69...) into the AggregatorV3Interface
         AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
         (,int answer,,,) = priceFeed.latestRoundData(); // The commas are important since 5 items are returned from .latestRoundData()
@@ -18,7 +18,7 @@ library PriceConverter {
     }
 
     // Conversion rate function (How much is 1ETH worth in USD?)
-    function getConversionRate(uint256 ethAmount) public view returns (uint256) {
+    function getConversionRate(uint256 ethAmount) internal view returns (uint256) {
         return ethAmount * getPrice() / 1e18; // 2738
     }
 }

@@ -2,10 +2,7 @@
 
 pragma solidity ^0.8.24;
 
-// Import chainlink data stream ABI (Standard way to interact with another contract (address + ABI))
-// import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-
-// Import PriceConverter library 
+// Import our PriceConverter library 
 import {PriceConverter} from './PriceConverter.sol';
 
 
@@ -19,6 +16,12 @@ contract FundMe {
     address[] public funders;
     mapping (address => uint256) public addressToAmountFunder;
 
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
     function fund() public payable { 
         // ** If this require statement fails, nothing after this line of code will execute, and gas will be refunded for all computation after this line.
         // ** Also, if a state variable is changed in the line before this require statement and the require fails, the state variable chnage will be reset to original state
@@ -27,20 +30,35 @@ contract FundMe {
         addressToAmountFunder[msg.sender] = addressToAmountFunder[msg.sender] + msg.value;
     }
 
-    // Withdraw function
+    function withdraw() public onlyOwner {
 
-    // // Fetch the ETH price
-    // function getPrice() public view returns(uint256) {
-    //     // ABI is grabbed by passing chainlink pricefeed address for Shepholia ETH(0x69...) into the AggregatorV3Interface
-    //     AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
-    //     (,int answer,,,) = priceFeed.latestRoundData(); // The commas are important since 5 items are returned from .latestRoundData()
-    //     return uint256(answer * 1e10); // Mutiplying by 1e10 just adds 10 zeros to the end + typecast answer into a uint256
+        // Reset the mapping amounts
+        for (uint256 i = 0; i < funders.length; i++) {
+            address funder = funders[i];
+            addressToAmountFunder[funder] = 0;
+        }
 
-    // }
+        // Rest the array
+        funders = new address[](0);
 
-    // // Conversion rate function (How much is 1ETH worth in USD?)
-    // function getConversionRate(uint256 ethAmount) public view returns (uint256) {
-    //     return ethAmount * getPrice() / 1e18; // 2738
-    // }
+        // Withdraw the funds - 3 ways to do this in solidity (transfer, send, call)
+        
+        // transfer (will return error if it fails, will auto revert if transaction fails) (msg.sender is of type address, so we need to typecast it to type payable address)
+        // payable(msg.sender).transfer(address(this).balance);
+
+        // send (will return bool, will only revert if we add the require check)
+        // bool sendSuccess = payable(msg.sender).send(address(this).balance);
+        // require(sendSuccess, "Send failed");
+
+        // call (lower level, reccommended since its most gas effecient)
+        (bool callSuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
+    }
+
+    // Set up a modifier that only allows the contract owner to call certain functions
+    modifier onlyOwner() {
+        require (msg.sender == owner, "Must be owner to withdraw");
+        _; // This means anything else in a function code will excecute at this point
+    }
 
 }
